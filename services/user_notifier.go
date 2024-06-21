@@ -22,19 +22,19 @@ type Notifier interface {
 	NotifyTo(context.Context, notifier.NotifyToOptions) error
 }
 
-func NewUserNotifier(limiter Limiter, notifier Notifier) UserNotifier {
-	return UserNotifier{
+func NewUserNotifier(limiter Limiter, notifier Notifier) UserNotifierService {
+	return UserNotifierService{
 		limiter:  limiter,
 		notifier: notifier,
 	}
 }
 
-type UserNotifier struct {
+type UserNotifierService struct {
 	limiter  Limiter
 	notifier Notifier
 }
 
-func (serv UserNotifier) Notify(ctx context.Context, userMail string, messageType string) error {
+func (serv UserNotifierService) Notify(ctx context.Context, userMail string, messageType string) error {
 	reached, err := serv.limiter.Reached(ctx, userMail, messageType)
 	if err != nil {
 		return fmt.Errorf("limiter error for user %s: %w", userMail, err)

@@ -69,7 +69,7 @@ func TestUserNotifier_Notify(t *testing.T) {
 
 			tt.applyMocks(mockLimiter, mockNotifier)
 
-			serv := UserNotifier{
+			serv := UserNotifierService{
 				limiter:  mockLimiter,
 				notifier: mockNotifier,
 			}

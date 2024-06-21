@@ -17,7 +17,7 @@ func (uc *UserController) registerRoutes(router chi.Router) {
 	router.Post("/notifications", uc.handleNotifyUser)
 }
 
-// UserNotifier is an abstraction for services.UserNotifier making it mockeable
+// UserNotifier is an abstraction for services.UserNotifierService making it mockeable
 type UserNotifier interface {
 	Notify(context.Context, string, string) error
 }
