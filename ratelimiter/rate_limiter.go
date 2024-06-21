@@ -8,17 +8,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func NewRateLimiter(db redis.Client, max int64, suffixKey string, ttl time.Duration) RateLimiter {
+func newRateLimiter(db redis.Client, max int64, suffixKey string, ttl time.Duration) rateLimiter {
 	return rateLimiter{
 		db:        db,
 		max:       max,
 		suffixKey: suffixKey,
 		ttl:       ttl,
 	}
-}
-
-type RateLimiter interface {
-	Reached(context.Context, string) (bool, error)
 }
 
 // RedisCounter is an abstraction for redis.Client making it mockeable
