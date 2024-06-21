@@ -2,18 +2,24 @@ package ratelimiter
 
 import "time"
 
+const (
+	StatusType    = "Status"
+	NewsType      = "News"
+	MarketingType = "Marketing"
+)
+
 // DefaultConfigs set the business rules needed for the rate limiter.
 // Depending on the context, they could be migrated to a database for getting dynamism
 var DefaultConfigs = map[string]Config{
-	"Status": {
+	StatusType: {
 		Max: 2,
 		TTL: time.Minute,
 	},
-	"News": {
+	NewsType: {
 		Max: 1,
 		TTL: 24 * time.Hour,
 	},
-	"Marketing": {
+	MarketingType: {
 		Max: 3,
 		TTL: time.Hour,
 	},
