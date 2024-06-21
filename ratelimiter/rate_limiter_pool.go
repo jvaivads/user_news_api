@@ -22,10 +22,6 @@ func NewLimiterPool(db redis.Client, configs map[string]Config) LimiterPool {
 	return limiterPool
 }
 
-type Limiter interface {
-	Reached(context.Context, string, string) (bool, error)
-}
-
 type LimiterPool struct {
 	limiters map[string]rateLimiter
 }

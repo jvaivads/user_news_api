@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	"user_news_api/ratelimiter/mocks"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -15,14 +16,14 @@ import (
 func TestReached(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockApplier    func(mockRedis *RedisCounterMock)
+		mockApplier    func(mockRedis *mocks.RedisCounter)
 		key            string
 		expectedResult bool
 		expectedError  error
 	}{
 		{
 			name: "Counter below max",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "testKey-suffix").Return(redis.NewIntResult(5, nil)).Once()
 				mockRedis.On("TTL", mock.Anything, "testKey-suffix").Return(redis.NewDurationResult(10*time.Second, nil)).Once()
 			},
@@ -32,7 +33,7 @@ func TestReached(t *testing.T) {
 		},
 		{
 			name: "Counter above max",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "testKey-suffix").Return(redis.NewIntResult(15, nil)).Once()
 				mockRedis.On("TTL", mock.Anything, "testKey-suffix").Return(redis.NewDurationResult(10*time.Second, nil)).Once()
 			},
@@ -42,7 +43,7 @@ func TestReached(t *testing.T) {
 		},
 		{
 			name: "Error increasing counter",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "testKey-suffix").Return(redis.NewIntResult(0, errors.New("error"))).Once()
 			},
 			key:            "testKey",
@@ -51,7 +52,7 @@ func TestReached(t *testing.T) {
 		},
 		{
 			name: "TTL not set, then set",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "testKey-suffix").Return(redis.NewIntResult(5, nil)).Once()
 				mockRedis.On("TTL", mock.Anything, "testKey-suffix").Return(redis.NewDurationResult(-2, nil)).Once()
 				mockRedis.On("Expire", mock.Anything, "testKey-suffix", mock.Anything).Return(redis.NewBoolResult(true, nil)).Once()
@@ -64,7 +65,7 @@ func TestReached(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRedis := NewRedisCounterMock(t)
+			mockRedis := mocks.NewRedisCounter(t)
 
 			tt.mockApplier(mockRedis)
 
@@ -86,14 +87,14 @@ func TestReached(t *testing.T) {
 func TestLimiterPoolReached(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockApplier    func(mockRedis *RedisCounterMock)
+		mockApplier    func(mockRedis *mocks.RedisCounter)
 		limiters       map[string]rateLimiter
 		expectedResult bool
 		expectedError  error
 	}{
 		{
 			name: "Valid message type, counter below max",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "user-type").Return(redis.NewIntResult(5, nil)).Once()
 				mockRedis.On("TTL", mock.Anything, "user-type").Return(redis.NewDurationResult(10*time.Second, nil)).Once()
 			},
@@ -109,7 +110,7 @@ func TestLimiterPoolReached(t *testing.T) {
 		},
 		{
 			name: "Valid message type, counter above max",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "user-type").Return(redis.NewIntResult(15, nil)).Once()
 				mockRedis.On("TTL", mock.Anything, "user-type").Return(redis.NewDurationResult(10*time.Second, nil)).Once()
 			},
@@ -125,14 +126,14 @@ func TestLimiterPoolReached(t *testing.T) {
 		},
 		{
 			name:           "Invalid message type",
-			mockApplier:    func(mockRedis *RedisCounterMock) {},
+			mockApplier:    func(mockRedis *mocks.RedisCounter) {},
 			limiters:       map[string]rateLimiter{},
 			expectedResult: false,
 			expectedError:  ErrMessageTypeNotValid,
 		},
 		{
 			name: "Error increasing counter",
-			mockApplier: func(mockRedis *RedisCounterMock) {
+			mockApplier: func(mockRedis *mocks.RedisCounter) {
 				mockRedis.On("Incr", mock.Anything, "user-type").Return(redis.NewIntResult(0, errors.New("error"))).Once()
 			},
 			limiters: map[string]rateLimiter{
@@ -149,7 +150,7 @@ func TestLimiterPoolReached(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRedis := NewRedisCounterMock(t)
+			mockRedis := mocks.NewRedisCounter(t)
 			tt.mockApplier(mockRedis)
 
 			for msgType, limiter := range tt.limiters {

@@ -6,10 +6,6 @@ import (
 	"gopkg.in/mail.v2"
 )
 
-type Client interface {
-	NotifyTo(context.Context, NotifyToOptions) error
-}
-
 type Options struct {
 	Host     string
 	Port     int
@@ -18,7 +14,7 @@ type Options struct {
 }
 
 func NewClient(options Options) Client {
-	return client{
+	return Client{
 		sender: options.Username,
 		dialer: mail.NewDialer(
 			options.Host,
@@ -35,7 +31,7 @@ type Dialer interface {
 }
 
 // Client represents a mail sender, all the messages are sent from the same address.
-type client struct {
+type Client struct {
 	sender string
 	dialer Dialer
 }
@@ -46,7 +42,7 @@ type NotifyToOptions struct {
 	Body    string // Body must be HTML formatted
 }
 
-func (c client) NotifyTo(_ context.Context, options NotifyToOptions) error {
+func (c Client) NotifyTo(_ context.Context, options NotifyToOptions) error {
 	msg := mail.NewMessage()
 	msg.SetHeader("From", c.sender)
 	msg.SetHeader("To", options.To)

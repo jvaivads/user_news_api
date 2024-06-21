@@ -12,9 +12,19 @@ var (
 	ErrLimitExceeded = errors.New("limit exceeded")
 )
 
+// Limiter is an abstraction for ratelimiter.LimiterPool making it mockeable
+type Limiter interface {
+	Reached(context.Context, string, string) (bool, error)
+}
+
+// Notifier is an abstraction for notifier.Client making it mockeable
+type Notifier interface {
+	NotifyTo(context.Context, notifier.NotifyToOptions) error
+}
+
 type UserNotifier struct {
-	limiter  ratelimiter.Limiter
-	notifier notifier.Client
+	limiter  Limiter
+	notifier Notifier
 }
 
 func (serv UserNotifier) Notify(ctx context.Context, userMail string, messageType string) error {

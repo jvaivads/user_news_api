@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"user_news_api/notifier"
 	"user_news_api/ratelimiter"
+	"user_news_api/services/mocks"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserNotifier_Notify(t *testing.T) {
@@ -17,12 +19,12 @@ func TestUserNotifier_Notify(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		applyMocks    func(*ratelimiter.LimiterMock, *notifier.ClientMock)
+		applyMocks    func(*mocks.Limiter, *mocks.Notifier)
 		expectedError error
 	}{
 		{
 			name: "Success",
-			applyMocks: func(ml *ratelimiter.LimiterMock, mn *notifier.ClientMock) {
+			applyMocks: func(ml *mocks.Limiter, mn *mocks.Notifier) {
 				ml.On("Reached", ctx, userMail, messageType).Return(false, nil).Once()
 				mn.On("NotifyTo", ctx, notifier.NotifyToOptions{
 					To:      userMail,
@@ -34,21 +36,21 @@ func TestUserNotifier_Notify(t *testing.T) {
 		},
 		{
 			name: "Limiter Error",
-			applyMocks: func(ml *ratelimiter.LimiterMock, mn *notifier.ClientMock) {
+			applyMocks: func(ml *mocks.Limiter, mn *mocks.Notifier) {
 				ml.On("Reached", ctx, userMail, messageType).Return(false, errors.New("limiter error")).Once()
 			},
 			expectedError: fmt.Errorf("limiter error for user %s: %w", userMail, errors.New("limiter error")),
 		},
 		{
 			name: "Rate Limit Exceeded",
-			applyMocks: func(ml *ratelimiter.LimiterMock, mn *notifier.ClientMock) {
+			applyMocks: func(ml *mocks.Limiter, mn *mocks.Notifier) {
 				ml.On("Reached", ctx, userMail, messageType).Return(true, nil).Once()
 			},
 			expectedError: fmt.Errorf("%w: rate limit reached for user %s and message type %s", ErrLimitExceeded, userMail, messageType),
 		},
 		{
 			name: "Notifier Error",
-			applyMocks: func(ml *ratelimiter.LimiterMock, mn *notifier.ClientMock) {
+			applyMocks: func(ml *mocks.Limiter, mn *mocks.Notifier) {
 				ml.On("Reached", ctx, userMail, messageType).Return(false, nil).Once()
 				mn.On("NotifyTo", ctx, notifier.NotifyToOptions{
 					To:      userMail,
@@ -62,8 +64,8 @@ func TestUserNotifier_Notify(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockLimiter := ratelimiter.NewLimiterMock(t)
-			mockNotifier := notifier.NewClientMock(t)
+			mockLimiter := mocks.NewLimiter(t)
+			mockNotifier := mocks.NewNotifier(t)
 
 			tt.applyMocks(mockLimiter, mockNotifier)
 
