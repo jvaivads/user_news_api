@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func newRateLimiter(db redis.Client, max int64, suffixKey string, ttl time.Duration) rateLimiter {
+func newRateLimiter(db *redis.Client, max int64, suffixKey string, ttl time.Duration) rateLimiter {
 	return rateLimiter{
 		db:        db,
 		max:       max,

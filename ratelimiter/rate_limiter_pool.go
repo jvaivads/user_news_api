@@ -10,7 +10,7 @@ var (
 	ErrMessageTypeNotValid = errors.New("message type not valid")
 )
 
-func NewLimiterPool(db redis.Client, configs map[string]Config) LimiterPool {
+func NewLimiterPool(db *redis.Client, configs map[string]Config) LimiterPool {
 	limiterPool := LimiterPool{
 		limiters: make(map[string]rateLimiter),
 	}

@@ -13,13 +13,19 @@ import (
 	"github.com/go-playground/validator"
 )
 
-func (uc *UserController) RegisterRoutes(router chi.Router) {
+func (uc *UserController) registerRoutes(router chi.Router) {
 	router.Post("/notifications", uc.handleNotifyUser)
 }
 
 // UserNotifier is an abstraction for services.UserNotifier making it mockeable
 type UserNotifier interface {
 	Notify(context.Context, string, string) error
+}
+
+func SetUserController(router chi.Router, service UserNotifier) {
+	controller := &UserController{service: service}
+
+	controller.registerRoutes(router)
 }
 
 type UserController struct {

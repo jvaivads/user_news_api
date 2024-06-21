@@ -22,6 +22,13 @@ type Notifier interface {
 	NotifyTo(context.Context, notifier.NotifyToOptions) error
 }
 
+func NewUserNotifier(limiter Limiter, notifier Notifier) UserNotifier {
+	return UserNotifier{
+		limiter:  limiter,
+		notifier: notifier,
+	}
+}
+
 type UserNotifier struct {
 	limiter  Limiter
 	notifier Notifier
