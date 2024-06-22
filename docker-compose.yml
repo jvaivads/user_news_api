@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  redis:
+    image: "redis:6.2"
+    container_name: "redis"
+    ports:
+      - "6379:6379"
+    networks:
+      - transaction-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: "user-news-api:0.0.1"
+    build:
+      dockerfile: Dockerfile
+    container_name: "user-news-api"
+    environment:
+      NOTIFIER_HOST: "smtp.gmail.com"
+      NOTIFIER_PORT: "587"
+      NOTIFIER_SENDER: "xxx@gmail.com"
+      NOTIFIER_PASSWORD: "xxxx"
+      REDIS_ADDRESS: "redis:6379"
+      REDIS_PASSWORD: ""
+    ports:
+      - "8080:8080"
+    networks:
+      - transaction-net
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    restart: always
+networks:
+  transaction-net:
+    driver: bridge
