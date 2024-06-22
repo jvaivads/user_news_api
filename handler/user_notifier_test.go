@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"testing"
 	"user_news_api/handler/mocks"
+	"user_news_api/ratelimiter"
 	"user_news_api/services"
 )
 
@@ -69,6 +70,20 @@ func TestHandleNotifyUser(t *testing.T) {
 			},
 			expectedStatus: http.StatusTooManyRequests,
 			expectedBody:   "too many requests",
+		},
+		{
+			name: "Service limit exceeded error",
+			payload: NotifyUserRequestPayload{
+				UserEmail:   "test@example.com",
+				MessageType: "welcome",
+			},
+			setupMocks: func(service *mocks.UserNotifier) {
+				service.On("Notify", mock.Anything, "test@example.com", "welcome").
+					Return(fmt.Errorf(
+						"%w: error", ratelimiter.ErrMessageTypeNotValid)).Once()
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "message type not valid",
 		},
 		{
 			name: "Service internal error",

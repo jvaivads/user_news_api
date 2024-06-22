@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"user_news_api/ratelimiter"
 	"user_news_api/services"
 
 	"github.com/go-chi/chi/v5"
@@ -54,6 +55,12 @@ func (uc *UserController) handleNotifyUser(w http.ResponseWriter, r *http.Reques
 	if err := uc.service.Notify(r.Context(), payload.UserEmail, payload.MessageType); err != nil {
 		if errors.Is(err, services.ErrLimitExceeded) {
 			http.Error(w, "too many requests", http.StatusTooManyRequests)
+
+			return
+		}
+
+		if errors.Is(err, ratelimiter.ErrMessageTypeNotValid) {
+			http.Error(w, "message type not valid", http.StatusBadRequest)
 
 			return
 		}
