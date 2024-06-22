@@ -131,15 +131,6 @@ func TestGetRedisOptions(t *testing.T) {
 			panicMessage: "redis address is empty",
 		},
 		{
-			name: "Redis password is empty",
-			envVars: map[string]string{
-				"REDIS_ADDRESS":  "address",
-				"REDIS_PASSWORD": "",
-			},
-			expectPanic:  true,
-			panicMessage: "redis password is empty",
-		},
-		{
 			name: "OK",
 			envVars: map[string]string{
 				"REDIS_ADDRESS":  "address",

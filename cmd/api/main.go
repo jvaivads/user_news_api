@@ -29,7 +29,7 @@ func main() {
 	handler.SetUserController(router, serv)
 
 	server := http.Server{
-		Addr:    ":80",
+		Addr:    ":8080",
 		Handler: router,
 	}
 
@@ -76,10 +76,8 @@ func getRedisOptions() *redis.Options {
 		panic("redis address is empty")
 	}
 
+	// password is not validated due to local environment use case.
 	password := os.Getenv("REDIS_PASSWORD")
-	if password == "" {
-		panic("redis password is empty")
-	}
 
 	return &redis.Options{
 		Addr:     addr,
